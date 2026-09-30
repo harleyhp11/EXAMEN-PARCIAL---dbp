@@ -1,0 +1,674 @@
+{
+  "info": {
+    "name": "LabReserve UTEC",
+    "description": "Coleccion de los endpoints de LabReserve UTEC. Ejecutar en orden: Login (tecnico) -> Crear turno -> Login (estudiante) -> Reservar equipo -> Mis reservas. El token se guarda solo en la variable {{token}} tras cada login.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "labId",
+      "value": "1"
+    },
+    {
+      "key": "slotId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Autenticacion",
+      "item": [
+        {
+          "name": "Registro de usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "201 Created. username y email unicos, password minimo 8 caracteres. El rol inicial es ROLE_STUDENT.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"raul.lab\",\n  \"email\": \"raul@utec.edu.pe\",\n  \"password\": \"LabPass2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('No expone el password', () => pm.expect(pm.response.json().password).to.be.undefined);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (tecnico)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Usuario sembrado con ROLE_TECHNICIAN, gestor del laboratorio FabLab.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"tec.fablab\",\n  \"password\": \"TecPass2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('token', body.token);",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Devuelve token', () => pm.expect(body.token).to.be.a('string'));",
+                  "pm.test('expiresIn 3600', () => pm.expect(body.expiresIn).to.eql(3600));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (estudiante)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Usuario sembrado con ROLE_STUDENT.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"raul.lab\",\n  \"password\": \"LabPass2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('token', body.token);",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Devuelve token', () => pm.expect(body.token).to.be.a('string'));",
+                  "pm.test('expiresIn 3600', () => pm.expect(body.expiresIn).to.eql(3600));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Usuario sembrado con ROLE_ADMIN.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin.utec\",\n  \"password\": \"AdminPass2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('token', body.token);",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Devuelve token', () => pm.expect(body.token).to.be.a('string'));",
+                  "pm.test('expiresIn 3600', () => pm.expect(body.expiresIn).to.eql(3600));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login con credenciales invalidas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Debe responder 401 Unauthorized.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"raul.lab\",\n  \"password\": \"ClaveIncorrecta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Laboratorios",
+      "item": [
+        {
+          "name": "Listar laboratorios",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/laboratories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "laboratories"
+              ]
+            },
+            "description": "Endpoint de apoyo para conocer los ids y el estado de cada laboratorio."
+          }
+        },
+        {
+          "name": "Crear laboratorio (solo ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/laboratories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "laboratories"
+              ]
+            },
+            "description": "Endpoint de apoyo. Requiere token de ROLE_ADMIN.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lab de Materiales\",\n  \"location\": \"Pabellon C - Piso 3\",\n  \"managerId\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Turnos de equipo",
+      "item": [
+        {
+          "name": "Crear turno de equipo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/laboratories/{{labId}}/slots",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "laboratories",
+                "{{labId}}",
+                "slots"
+              ]
+            },
+            "description": "201 Created. Solo ROLE_TECHNICIAN o ROLE_ADMIN, laboratorio ACTIVE, startTime futuro y menor que endTime, sin solapamiento para el equipo.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentCode\": \"IMP-3D-07\",\n  \"startTime\": \"2026-12-08T10:00:00-05:00\",\n  \"endTime\": \"2026-12-08T12:00:00-05:00\",\n  \"capacity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('slotId', body.id);",
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Estado inicial AVAILABLE', () => pm.expect(body.status).to.eql('AVAILABLE'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear turno solapado (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/laboratories/{{labId}}/slots",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "laboratories",
+                "{{labId}}",
+                "slots"
+              ]
+            },
+            "description": "El mismo equipo con horario cruzado debe responder 409 Conflict.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentCode\": \"IMP-3D-07\",\n  \"startTime\": \"2026-12-08T11:00:00-05:00\",\n  \"endTime\": \"2026-12-08T13:00:00-05:00\",\n  \"capacity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear turno sin token (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/laboratories/{{labId}}/slots",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "laboratories",
+                "{{labId}}",
+                "slots"
+              ]
+            },
+            "description": "Sin cabecera Authorization debe responder 401.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentCode\": \"IMP-3D-08\",\n  \"startTime\": \"2026-12-09T10:00:00-05:00\",\n  \"endTime\": \"2026-12-09T12:00:00-05:00\",\n  \"capacity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar turnos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/equipment-slots?page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipment-slots"
+              ],
+              "query": [
+                {
+                  "key": "laboratoryId",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "equipmentCode",
+                  "value": "IMP",
+                  "disabled": true
+                },
+                {
+                  "key": "from",
+                  "value": "2026-10-01T00:00:00-05:00",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Endpoint publico. Devuelve solo turnos AVAILABLE y futuros. Los filtros laboratoryId, equipmentCode (parcial) y from son opcionales y combinables."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('Forma de pagina', () => pm.expect(b).to.have.all.keys('content','page','size','totalElements'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Reservas",
+      "item": [
+        {
+          "name": "Reservar equipo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/equipment-slots/{{slotId}}/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipment-slots",
+                "{{slotId}}",
+                "reservations"
+              ]
+            },
+            "description": "201 Created. Requiere token de estudiante. El studentId sale del JWT. Sin capacidad, con solapamiento o duplicada responde 409.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"purpose\": \"Prototipo del curso de Diseno\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Estado RESERVED', () => pm.expect(pm.response.json().status).to.eql('RESERVED'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reservar el mismo turno otra vez (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/equipment-slots/{{slotId}}/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipment-slots",
+                "{{slotId}}",
+                "reservations"
+              ]
+            },
+            "description": "No se permite duplicar la reserva para el mismo turno.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"purpose\": \"Intento duplicado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar mis reservas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my-lab-reservations?status=all&page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my-lab-reservations"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "all"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Solo las reservas del usuario del JWT, ordenadas por reservedAt descendente. status admite all | reserved | used | cancelled."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
